@@ -54,9 +54,7 @@ Otherwise, we provide new backbone like transformer, we actually select small mo
 
 ## Pipeline
 
-<div align=center>
-<img src='pipeline/pipeline.jpg' width='800'>
-</div>
+![pipeline](pipeline/pipeline.jpg)
 
 ## Pretrained Model
 
@@ -89,8 +87,6 @@ python ./tools/get_vis_result.py
 ```
 
 You will get the FAR-GAR and ROC curve, like:
-<div align=center>
-<img src='pipeline/折线图.png' width='800'>
-</div>
+![result](pipeline/折线图.png)
 
 ## Results
