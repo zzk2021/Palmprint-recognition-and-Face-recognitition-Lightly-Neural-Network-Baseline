@@ -87,6 +87,6 @@ python ./tools/get_vis_result.py
 ```
 
 You will get the FAR-GAR and ROC curve, like:
-![result](pipeline/折线图.png)
+![result](https://raw.githubusercontent.com/zzk2021/Palmprint-recognition-Lightly-Neural-Network-Baseline/main/pipeline/%E6%8A%98%E7%BA%BF%E5%9B%BE.png)
 
 ## Results
