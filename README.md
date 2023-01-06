@@ -55,7 +55,7 @@ Otherwise, we provide new backbone like transformer, we actually select small mo
 ## Pipeline
 
 <div align=center>
-<img src='docs/pipeline.jpg' width='800'>
+<img src='pipeline/pipeline.jpg' width='800'>
 </div>
 
 ## Pretrained Model
