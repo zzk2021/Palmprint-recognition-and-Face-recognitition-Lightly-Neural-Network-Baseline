@@ -2,6 +2,7 @@ import os
 from torch.backends import cudnn
 
 from config import Config
+from processor.processor import do_train_fer2013
 from utils.logger import setup_logger
 from datasets import make_dataloader
 from model import make_model
@@ -20,16 +21,17 @@ if __name__ == '__main__':
     cudnn.benchmark = True
     # This flag allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware.
 
-    train_loader, val_loader, num_query, num_classes = make_dataloader(cfg)
+    train_loader, val_loader, test_loader, num_query, num_classes = make_dataloader(cfg)
+
     model = make_model(cfg, num_class=num_classes)
 
-    loss_func, center_criterion = make_loss(cfg, num_classes=num_classes)
-
+    loss_func, center_criterion = make_loss(cfg, num_classes=num_classes, feature_dim = model.in_planes)
     optimizer, optimizer_center = make_optimizer(cfg, model, center_criterion)
     scheduler = WarmupMultiStepLR(optimizer, cfg.STEPS, cfg.GAMMA,
                                   cfg.WARMUP_FACTOR,
                                   cfg.WARMUP_EPOCHS, cfg.WARMUP_METHOD)
-
+    if cfg.DATASET_NAME in ("fer2013","ck+","ref-db"):
+        do_train_fer2013(cfg, model, train_loader, loss_func, optimizer, test_loader, scheduler )
     do_train(
         cfg,
         model,
