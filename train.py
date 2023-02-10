@@ -32,15 +32,16 @@ if __name__ == '__main__':
                                   cfg.WARMUP_EPOCHS, cfg.WARMUP_METHOD)
     if cfg.DATASET_NAME in ("fer2013","ck+","ref-db"):
         do_train_fer2013(cfg, model, train_loader, loss_func, optimizer, test_loader, scheduler )
-    do_train(
-        cfg,
-        model,
-        center_criterion,
-        train_loader,
-        val_loader,
-        optimizer,
-        optimizer_center,
-        scheduler,  # modify for using self trained model
-        loss_func,
-        num_query
-    )
+    else:
+        do_train(
+            cfg,
+            model,
+            center_criterion,
+            train_loader,
+            val_loader,
+            optimizer,
+            optimizer_center,
+            scheduler,  # modify for using self trained model
+            loss_func,
+            num_query
+        )
