@@ -49,13 +49,13 @@ def mixup_data(x, y, alpha=0.2):
     y_a, y_b = y, y[index]
     return mixed_x, y_a, y_b, lam
 
-def do_train_fer2013(cfg, model, train_loader, loss_fn, optimizer, val_loader, scheduler, device="cuda:0"):
+def do_train_fer2013(cfg, model, train_loader, loss_fn, optimizer, val_loader, scheduler, device="cuda:0",optimizer_center=None,center_criterion=None):
     logger = logging.getLogger('{}.train'.format(cfg.PROJECT_NAME))
     logger.info('start training')
     log_period = cfg.LOG_PERIOD
+    center_loss_weight = cfg.CENTER_LOSS_WEIGHT
     checkpoint_period = cfg.CHECKPOINT_PERIOD
     eval_period = cfg.EVAL_PERIOD
-    scaler = GradScaler()
     for epoch in range(1, cfg.MAX_EPOCHS + 1):
         count = 0
         correct = 0
@@ -65,33 +65,36 @@ def do_train_fer2013(cfg, model, train_loader, loss_fn, optimizer, val_loader, s
         for i, data in enumerate(train_loader):
             images, labels = data
             images, labels = images.to(device), labels.to(device)
-            with autocast():
 
-                if cfg.NCROP:
-                    bs, ncrops, c, h, w = images.shape
-                    images = images.view(-1, c, h, w)
-                    labels = torch.repeat_interleave(labels, repeats=ncrops, dim=0)
+            if cfg.NCROP:
+                bs, ncrops, c, h, w = images.shape
+                images = images.view(-1, c, h, w)
+                labels = torch.repeat_interleave(labels, repeats=ncrops, dim=0).view(-1)
 
-                if cfg.MIXUP:
-                    images, labels_a, labels_b, lam = mixup_data(
-                        images, labels, cfg.MIXUP_ALPHA)
-                    images, labels_a, labels_b = map(
-                        Variable, (images, labels_a, labels_b))
+            if cfg.MIXUP:
+                images, labels_a, labels_b, lam = mixup_data(
+                    images, labels, cfg.MIXUP_ALPHA)
+                images, labels_a, labels_b = map(
+                    Variable, (images, labels_a, labels_b))
 
-                cls_score, global_feat = model(images)
+            cls_score, global_feat = model(images)
 
-                if cfg.MIXUP:
-                    # mixup
-                    loss = mixup_criterion(
-                        loss_fn, cls_score, global_feat, labels_a, labels_b, lam)
-                else:
-                    # normal CE
-                    loss = loss_fn(cls_score, global_feat, labels)
-
+            if cfg.MIXUP:
+                # mixup
+                loss = mixup_criterion(
+                    loss_fn, cls_score, global_feat, labels_a, labels_b, lam)
+            else:
+                # normal CE
+                loss = loss_fn(cls_score, global_feat, labels)
+            if optimizer_center!=None:
+                optimizer_center.zero_grad()
             optimizer.zero_grad()
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
+            loss.backward()
+            optimizer.step()
+            if optimizer_center!=None:
+                for param in center_criterion.parameters():
+                    param.grad.data *= (1. / center_loss_weight)
+                optimizer_center.step()
 
             train_loss += loss
             _, preds = torch.max(cls_score, 1)
@@ -109,7 +112,7 @@ def do_train_fer2013(cfg, model, train_loader, loss_fn, optimizer, val_loader, s
             torch.save(model.state_dict(), os.path.join(cfg.OUTPUT_DIR, cfg.MODEL_NAME + '_{}.pth'.format(epoch)))
 
         if epoch % eval_period == 0:
-            evaluate(logger, model, val_loader, nn.CrossEntropyLoss(),cfg.NCROP)
+            evaluate(logger, model, val_loader, nn.CrossEntropyLoss(),cfg.NCROP,cfg.LOG_NAME)
 
 def do_train(cfg,
              model,
