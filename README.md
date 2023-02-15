@@ -1,4 +1,4 @@
-# Palmprint-recognitition Lightly Neural Network Baseline
+# Palmprint-recognitition and Face-recognitition Lightly Neural Network Baseline
 Paper: "Bag of Tricks and A Strong Baseline for Deep Person Re-identification"[[pdf]](https://arxiv.org/abs/1903.07071)
 
 We plan to release those lightly backbones for Palmprint-recognition on this baseline[[link]](https://github.com/michuanhaohao/reid-strong-baseline). You can use this project on your edge GPU device.
